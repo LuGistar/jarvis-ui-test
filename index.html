@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>J.A.R.V.I.S. Systems Interface</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --cyan: #39f5ff;
+      --violet: #7f7bff;
+      --yellow: #ffd36d;
+      --danger: #ff4d6d;
+      --panel-bg: rgba(12, 26, 41, 0.35);
+      --panel-border: rgba(102, 216, 255, 0.55);
+      --text: #e9fbff;
+      --glow: 0 0 40px rgba(81, 209, 255, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Rajdhani', sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(68, 145, 198, 0.15), transparent 40%),
+                  radial-gradient(circle at 80% 20%, rgba(116, 51, 179, 0.18), transparent 45%),
+                  radial-gradient(circle at 50% 50%, rgba(12, 30, 55, 0.7), rgba(4, 8, 18, 0.95));
+      overflow: hidden;
+      color: var(--text);
+    }
+
+    main {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      perspective: 1800px;
+      overflow: hidden;
+    }
+
+    .background-grid::before,
+    .background-grid::after {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      background: repeating-linear-gradient(0deg, rgba(40, 130, 180, 0.06) 0 2px, transparent 2px 80px),
+                  repeating-linear-gradient(90deg, rgba(40, 130, 180, 0.06) 0 2px, transparent 2px 120px);
+      transform: rotateX(65deg) translateZ(-300px);
+      filter: blur(1px);
+      opacity: 0.7;
+    }
+
+    .background-grid::after {
+      transform: rotateX(85deg) translateZ(-350px);
+      opacity: 0.3;
+    }
+
+    .jarvis-ui {
+      position: relative;
+      width: min(1200px, 90vw);
+      height: min(900px, 90vh);
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 1.5rem;
+      align-items: center;
+      z-index: 1;
+    }
+
+    @media (max-width: 900px) {
+      .jarvis-ui {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        height: auto;
+        padding: 3rem 0;
+      }
+    }
+
+    .core-area {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1600px;
+    }
+
+    .orb-wrapper {
+      position: relative;
+      width: min(50vmin, 480px);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      filter: drop-shadow(0 0 50px rgba(87, 219, 255, 0.4));
+    }
+
+    .orb {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.25), transparent 50%),
+        radial-gradient(circle at 75% 30%, rgba(255, 255, 255, 0.15), transparent 55%),
+        radial-gradient(circle at 50% 50%, rgba(21, 88, 138, 0.5), rgba(5, 24, 36, 0.95));
+      box-shadow:
+        inset 0 0 60px rgba(24, 133, 204, 0.35),
+        inset 0 0 160px rgba(83, 224, 255, 0.45),
+        0 0 80px rgba(49, 175, 255, 0.35);
+      overflow: hidden;
+      animation: orbIdle 1.5s ease-in-out infinite;
+    }
+
+    .orb::before,
+    .orb::after {
+      content: "";
+      position: absolute;
+      inset: 6%;
+      border-radius: 50%;
+      background: conic-gradient(from 45deg, rgba(120, 255, 255, 0.2), rgba(18, 90, 180, 0.08), transparent 60%, rgba(120, 255, 255, 0.35));
+      mix-blend-mode: screen;
+      animation: filamentSpin 12s linear infinite;
+    }
+
+    .orb::after {
+      inset: 10%;
+      background: conic-gradient(from 180deg, rgba(120, 255, 255, 0.08), rgba(255, 255, 255, 0.4), rgba(120, 255, 255, 0.08));
+      animation-duration: 18s;
+      filter: blur(1px);
+    }
+
+    .orb-glint {
+      position: absolute;
+      top: 18%;
+      left: 25%;
+      width: 30%;
+      height: 30%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.55), transparent 65%);
+      filter: blur(1px);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .orb-filament {
+      position: absolute;
+      width: 120%;
+      height: 120%;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, transparent 0 45deg, rgba(120, 255, 255, 0.7) 45deg 55deg, transparent 55deg 360deg);
+      mix-blend-mode: screen;
+      opacity: 0.55;
+      filter: blur(2px);
+      animation: filamentSweep 6s linear infinite;
+      pointer-events: none;
+    }
+
+    .orb-filament:nth-of-type(3) {
+      animation-duration: 8s;
+      transform: rotate(120deg);
+    }
+
+    .orb-filament:nth-of-type(4) {
+      animation-duration: 10s;
+      transform: rotate(240deg);
+    }
+
+    .orb-active {
+      animation: orbActivePulse 2.8s ease-in-out infinite;
+    }
+
+    .orb-processing {
+      animation: orbProcessing 0.85s ease-out;
+    }
+
+    .pulse-ring {
+      position: absolute;
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 1px solid rgba(86, 209, 255, 0.35);
+      filter: blur(0.5px);
+      transform: scale(1.1);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .pulse-ring.is-visible {
+      animation: pulseRipple 1.2s ease-out;
+    }
+
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      background: conic-gradient(from 0deg, rgba(65, 227, 255, 0.35), rgba(32, 118, 255, 0.1) 60%, rgba(65, 227, 255, 0.35));
+      mask: radial-gradient(circle, transparent calc(50% - 6px), rgba(0,0,0,0.95) calc(50% - 2px));
+      animation: ringRotate var(--ring-speed, 20s) linear infinite;
+      box-shadow: 0 0 35px rgba(68, 205, 255, 0.35);
+    }
+
+    .ring::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: repeating-radial-gradient(circle, rgba(92, 216, 255, 0.35) 0 3px, transparent 3px 12px);
+      opacity: 0.35;
+      animation: dataPulse 2.4s linear infinite;
+      mix-blend-mode: screen;
+    }
+
+    .ring-inner { width: 70%; height: 70%; }
+    .ring-middle { width: 88%; height: 88%; }
+    .ring-outer { width: 108%; height: 108%; }
+
+    .ring[data-layer="critical"]::after {
+      animation-duration: 1.2s;
+    }
+
+    .panel-cluster {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: repeat(3, minmax(120px, 1fr));
+      gap: 1.2rem;
+      transform-style: preserve-3d;
+    }
+
+    .panel {
+      position: relative;
+      padding: 1rem 1.2rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 35px rgba(0, 180, 255, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transform-origin: center;
+      overflow: hidden;
+      opacity: 0;
+      animation: floatPanel 16s ease-in-out infinite;
+    }
+
+    .panel:nth-child(1) { animation-delay: 0s; }
+    .panel:nth-child(2) { animation-delay: 4s; }
+    .panel:nth-child(3) { animation-delay: 8s; }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(110, 220, 255, 0.35), transparent 55%);
+      opacity: 0.4;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      color: rgba(155, 234, 255, 0.95);
+    }
+
+    .panel-content {
+      display: grid;
+      gap: 0.4rem;
+      font-size: 0.95rem;
+      line-height: 1.35;
+      letter-spacing: 0.04em;
+    }
+
+    .status-bar {
+      position: relative;
+      width: 100%;
+      height: 6px;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      transform: translateY(6px) scaleY(0);
+      transition: transform 0.4s ease;
+    }
+
+    .panel:hover .status-bar {
+      transform: translateY(6px) scaleY(1);
+    }
+
+    .status-bar-fill {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(66, 216, 255, 0.2), rgba(66, 216, 255, 0.9));
+      transform-origin: left;
+    }
+
+    .panel.alert {
+      border-color: rgba(255, 99, 132, 0.6);
+      box-shadow: 0 0 45px rgba(255, 99, 132, 0.35);
+      animation: alertPulse 1.2s ease-in-out infinite;
+    }
+
+    .panel.alert h2 { color: #ff9ca9; }
+
+    .panel.alert .panel-content { color: #ffd5d9; }
+
+    .panel.alert::before {
+      background: radial-gradient(circle at 10% 10%, rgba(255, 76, 109, 0.45), transparent 65%);
+    }
+
+    .panel .voice-feedback {
+      font-size: 1.05rem;
+      font-style: italic;
+      color: rgba(200, 240, 255, 0.85);
+    }
+
+    .graphs {
+      position: absolute;
+      bottom: 3vh;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 1.2rem;
+      width: min(900px, 95vw);
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .graph-card {
+      flex: 1;
+      min-width: 220px;
+      background: rgba(10, 25, 42, 0.4);
+      border: 1px solid rgba(80, 200, 255, 0.35);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      box-shadow: 0 0 35px rgba(0, 180, 255, 0.18);
+    }
+
+    .graph-card h3 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(153, 234, 255, 0.9);
+    }
+
+    canvas {
+      width: 100%;
+      height: 120px;
+    }
+
+    .voice-wave {
+      position: absolute;
+      top: 6%;
+      right: 12%;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: rgba(30, 90, 155, 0.25);
+      border: 1px solid rgba(80, 200, 255, 0.35);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      box-shadow: 0 0 35px rgba(70, 196, 255, 0.25);
+    }
+
+    .voice-wave::after {
+      content: "VOICE INPUT";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 0.75rem;
+      letter-spacing: 0.25em;
+      color: rgba(180, 230, 255, 0.6);
+      pointer-events: none;
+    }
+
+    .wave-bars {
+      display: flex;
+      gap: 3px;
+    }
+
+    .wave-bars span {
+      width: 6px;
+      height: 60px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(120, 235, 255, 0.65), rgba(40, 180, 255, 0.15));
+      transform-origin: center bottom;
+      animation: wave 1s ease-in-out infinite;
+    }
+
+    .wave-bars span:nth-child(2) { animation-delay: 0.12s; }
+    .wave-bars span:nth-child(3) { animation-delay: 0.24s; }
+    .wave-bars span:nth-child(4) { animation-delay: 0.36s; }
+    .wave-bars span:nth-child(5) { animation-delay: 0.48s; }
+
+    .interaction-hint {
+      position: absolute;
+      bottom: 8%;
+      right: 6%;
+      font-size: 0.85rem;
+      letter-spacing: 0.18em;
+      color: rgba(140, 220, 255, 0.65);
+    }
+
+    .interaction-hint span {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    @keyframes orbIdle {
+      0%, 100% { box-shadow: inset 0 0 60px rgba(24, 133, 204, 0.35), inset 0 0 160px rgba(83, 224, 255, 0.4), 0 0 80px rgba(49, 175, 255, 0.32); transform: scale(0.995); }
+      50% { box-shadow: inset 0 0 80px rgba(24, 133, 204, 0.55), inset 0 0 220px rgba(83, 224, 255, 0.55), 0 0 120px rgba(49, 175, 255, 0.45); transform: scale(1.01); }
+    }
+
+    @keyframes orbActivePulse {
+      0% { filter: hue-rotate(0deg) brightness(1); }
+      33% { filter: hue-rotate(40deg) brightness(1.2); }
+      66% { filter: hue-rotate(140deg) brightness(1.3); }
+      100% { filter: hue-rotate(210deg) brightness(1.05); }
+    }
+
+    @keyframes orbProcessing {
+      0% { transform: scale(1); box-shadow: var(--glow); }
+      60% { transform: scale(1.08); box-shadow: 0 0 120px rgba(255, 230, 120, 0.65); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes pulseRipple {
+      0% { opacity: 0.6; transform: scale(1); border-color: rgba(90, 235, 255, 0.7); }
+      80% { opacity: 0; transform: scale(1.55); border-color: rgba(255, 221, 120, 0.2); }
+      100% { opacity: 0; transform: scale(1.65); }
+    }
+
+    @keyframes filamentSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes filamentSweep {
+      0% { transform: rotate(0deg) scale(1); opacity: 0.35; }
+      40% { opacity: 0.65; }
+      100% { transform: rotate(360deg) scale(1.03); opacity: 0.35; }
+    }
+
+    @keyframes ringRotate {
+      0% { transform: rotateZ(0deg); }
+      100% { transform: rotateZ(360deg); }
+    }
+
+    @keyframes dataPulse {
+      0% { transform: scale(0.98); opacity: 0.2; }
+      50% { transform: scale(1.02); opacity: 0.5; }
+      100% { transform: scale(0.98); opacity: 0.2; }
+    }
+
+    @keyframes floatPanel {
+      0% { transform: translate3d(0, 20px, -60px) rotateY(-8deg); opacity: 0; }
+      10% { opacity: 1; }
+      40% { transform: translate3d(0, -10px, 30px) rotateY(12deg); }
+      60% { transform: translate3d(0, 8px, -10px) rotateY(-4deg); }
+      90% { transform: translate3d(0, -18px, 40px) rotateY(6deg); }
+      100% { transform: translate3d(0, 20px, -60px) rotateY(-8deg); opacity: 0; }
+    }
+
+    @keyframes alertPulse {
+      0%, 100% { border-color: rgba(255, 99, 132, 0.55); box-shadow: 0 0 35px rgba(255, 99, 132, 0.25); }
+      50% { border-color: rgba(255, 180, 70, 0.75); box-shadow: 0 0 65px rgba(255, 120, 70, 0.55); }
+    }
+
+    @keyframes wave {
+      0%, 100% { transform: scaleY(0.4); opacity: 0.6; }
+      50% { transform: scaleY(1); opacity: 1; }
+    }
+
+    .event-log {
+      position: absolute;
+      top: 8%;
+      left: 6%;
+      max-width: 320px;
+      background: rgba(10, 26, 42, 0.55);
+      border: 1px solid rgba(80, 200, 255, 0.35);
+      border-radius: 16px;
+      padding: 1rem 1.2rem;
+      box-shadow: 0 0 30px rgba(60, 200, 255, 0.18);
+      backdrop-filter: blur(10px);
+    }
+
+    .event-log h3 {
+      margin: 0 0 0.6rem;
+      font-size: 0.9rem;
+      letter-spacing: 0.16em;
+      color: rgba(150, 230, 255, 0.9);
+      text-transform: uppercase;
+    }
+
+    .event-log ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
+    }
+
+    .event-log li {
+      color: rgba(197, 238, 255, 0.9);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .event-log li::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(82, 230, 255, 0.65);
+      box-shadow: 0 0 12px rgba(82, 230, 255, 0.65);
+    }
+
+    .event-log li.alert::before {
+      background: rgba(255, 110, 110, 0.9);
+      box-shadow: 0 0 12px rgba(255, 110, 110, 0.9);
+    }
+
+  </style>
+</head>
+<body>
+  <main>
+    <div class="background-grid"></div>
+    <section class="jarvis-ui">
+      <div class="core-area">
+        <div class="orb-wrapper" id="orbWrapper">
+          <div class="pulse-ring" id="pulseRing"></div>
+          <div class="ring ring-outer" data-layer="critical"></div>
+          <div class="ring ring-middle" data-layer="processing"></div>
+          <div class="ring ring-inner" data-layer="low"></div>
+          <div class="orb" id="coreOrb">
+            <div class="orb-glint"></div>
+            <div class="orb-filament"></div>
+            <div class="orb-filament"></div>
+            <div class="orb-filament"></div>
+          </div>
+        </div>
+      </div>
+      <aside class="panel-cluster" id="panelCluster">
+        <article class="panel" id="systemPanel">
+          <h2>System Diagnostics</h2>
+          <div class="panel-content" id="systemContent"></div>
+          <div class="status-bar"><div class="status-bar-fill" id="systemStatus"></div></div>
+        </article>
+        <article class="panel" id="environmentPanel">
+          <h2>Environment Stats</h2>
+          <div class="panel-content" id="environmentContent"></div>
+          <div class="status-bar"><div class="status-bar-fill" id="environmentStatus"></div></div>
+        </article>
+        <article class="panel" id="voicePanel">
+          <h2>Voice Feedback</h2>
+          <div class="panel-content">
+            <div class="voice-feedback" id="voiceFeedback">Awaiting directive, sir.</div>
+            <div class="status-bar"><div class="status-bar-fill" style="width: 100%;"></div></div>
+          </div>
+        </article>
+      </aside>
+    </section>
+
+    <div class="voice-wave">
+      <div class="wave-bars" id="waveBars">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <div class="event-log" id="eventLog">
+      <h3>Command Log</h3>
+      <ul></ul>
+    </div>
+
+    <div class="graphs">
+      <div class="graph-card">
+        <h3>Energy Core</h3>
+        <canvas id="energyGraph" width="320" height="120"></canvas>
+      </div>
+      <div class="graph-card">
+        <h3>Health Diagnostics</h3>
+        <canvas id="healthGraph" width="320" height="120"></canvas>
+      </div>
+      <div class="graph-card">
+        <h3>Atmospheric Scan</h3>
+        <canvas id="weatherGraph" width="320" height="120"></canvas>
+      </div>
+    </div>
+
+    <div class="interaction-hint">Tap or press <span>SPACE</span> to issue command</div>
+  </main>
+
+  <script>
+    const orb = document.getElementById('coreOrb');
+    const pulseRing = document.getElementById('pulseRing');
+    const rings = document.querySelectorAll('.ring');
+    const systemContent = document.getElementById('systemContent');
+    const environmentContent = document.getElementById('environmentContent');
+    const systemStatus = document.getElementById('systemStatus');
+    const environmentStatus = document.getElementById('environmentStatus');
+    const voiceFeedback = document.getElementById('voiceFeedback');
+    const eventLog = document.querySelector('#eventLog ul');
+    const waveBars = document.querySelectorAll('#waveBars span');
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let currentState = 'idle';
+
+    const ringSettings = {
+      idle: [
+        { speed: 32, color: ['rgba(65,227,255,0.45)','rgba(14,86,176,0.2)'] },
+        { speed: 24, color: ['rgba(96,217,255,0.45)','rgba(32,118,255,0.25)'] },
+        { speed: 18, color: ['rgba(120,237,255,0.55)','rgba(70,160,255,0.3)'] }
+      ],
+      active: [
+        { speed: 16, color: ['rgba(126,128,255,0.65)','rgba(57,79,220,0.35)'] },
+        { speed: 12, color: ['rgba(60,223,255,0.8)','rgba(120,87,255,0.55)'] },
+        { speed: 8, color: ['rgba(255,210,95,0.9)','rgba(140,70,255,0.45)'] }
+      ],
+      processing: [
+        { speed: 10, color: ['rgba(255,205,90,0.85)','rgba(255,140,70,0.35)'] },
+        { speed: 7, color: ['rgba(255,236,120,0.85)','rgba(255,110,90,0.55)'] },
+        { speed: 5, color: ['rgba(255,150,120,0.95)','rgba(255,70,110,0.5)'] }
+      ]
+    };
+
+    const statuses = {
+      cpu: 0.55,
+      integrity: 0.92,
+      shields: 0.72,
+      weather: 0.68,
+      humidity: 0.45,
+      oxygen: 0.97
+    };
+
+    const logs = [];
+
+    function updatePanels() {
+      const systemData = [
+        `CPU Load: ${(statuses.cpu * 100).toFixed(1)}%`,
+        `Core Integrity: ${(statuses.integrity * 100).toFixed(1)}%`,
+        `Shield Matrix: ${(statuses.shields * 100).toFixed(1)}%`
+      ];
+      systemContent.innerHTML = systemData.map(line => `<span>${line}</span>`).join('');
+      systemStatus.style.width = `${statuses.integrity * 100}%`;
+
+      const environmentData = [
+        `Weather Containment: ${(statuses.weather * 100).toFixed(1)}%`,
+        `Humidity Control: ${(statuses.humidity * 100).toFixed(1)}%`,
+        `Oxygen Level: ${(statuses.oxygen * 100).toFixed(1)}%`
+      ];
+      environmentContent.innerHTML = environmentData.map(line => `<span>${line}</span>`).join('');
+      environmentStatus.style.width = `${statuses.weather * 100}%`;
+    }
+
+    function pushLog(text, alert = false) {
+      const entry = document.createElement('li');
+      entry.textContent = text;
+      if (alert) entry.classList.add('alert');
+      eventLog.prepend(entry);
+      logs.unshift({ text, alert });
+      while (eventLog.children.length > 6) {
+        eventLog.removeChild(eventLog.lastChild);
+      }
+    }
+
+    function setRings(state) {
+      const settings = ringSettings[state];
+      rings.forEach((ring, index) => {
+        const config = settings[settings.length - 1 - index];
+        ring.style.setProperty('--ring-speed', `${config.speed}s`);
+        ring.style.background = `conic-gradient(from 0deg, ${config.color[0]}, ${config.color[1]}, ${config.color[0]})`;
+        if (state === 'processing') {
+          ring.classList.add('ring-processing');
+        } else {
+          ring.classList.remove('ring-processing');
+        }
+      });
+    }
+
+    function playTone({ freq = 440, type = 'sine', duration = 0.4, volume = 0.15 }) {
+      const oscillator = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      oscillator.connect(gain).connect(audioCtx.destination);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + duration);
+    }
+
+    function playChime() {
+      playTone({ freq: 740, type: 'sine', duration: 0.25, volume: 0.18 });
+      setTimeout(() => playTone({ freq: 880, type: 'triangle', duration: 0.35, volume: 0.15 }), 80);
+    }
+
+    function playBuzz() {
+      playTone({ freq: 90, type: 'sawtooth', duration: 0.55, volume: 0.2 });
+      setTimeout(() => playTone({ freq: 60, type: 'square', duration: 0.6, volume: 0.18 }), 20);
+    }
+
+    function animateWavebars(strength = 0.5) {
+      waveBars.forEach((bar, index) => {
+        const scale = Math.max(0.2, strength + Math.random() * 0.6);
+        bar.style.animationDuration = `${0.7 + Math.random() * 0.4}s`;
+        bar.style.transform = `scaleY(${scale})`;
+      });
+    }
+
+    function simulateVoiceInput(active) {
+      if (active) {
+        animateWavebars(1.1);
+      } else {
+        animateWavebars(0.4);
+      }
+    }
+
+    function triggerPulse() {
+      pulseRing.classList.remove('is-visible');
+      void pulseRing.offsetWidth;
+      pulseRing.classList.add('is-visible');
+    }
+
+    function setState(state, options = {}) {
+      currentState = state;
+      orb.classList.remove('orb-active');
+      orb.classList.remove('orb-processing');
+      if (state === 'active') {
+        orb.classList.add('orb-active');
+        voiceFeedback.textContent = 'Processing directive, sir.';
+      }
+      if (state === 'processing') {
+        orb.classList.add('orb-active');
+        orb.classList.add('orb-processing');
+        triggerPulse();
+        voiceFeedback.textContent = options.voice || 'Engaging resources now.';
+      }
+      if (state === 'idle') {
+        voiceFeedback.textContent = 'Awaiting directive, sir.';
+      }
+      setRings(state);
+    }
+
+    function randomRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function updateStatuses() {
+      statuses.cpu = Math.min(0.98, Math.max(0.18, statuses.cpu + randomRange(-0.05, 0.05)));
+      statuses.integrity = Math.min(1, Math.max(0.75, statuses.integrity + randomRange(-0.02, 0.01)));
+      statuses.shields = Math.min(0.96, Math.max(0.45, statuses.shields + randomRange(-0.03, 0.04)));
+      statuses.weather = Math.min(0.96, Math.max(0.3, statuses.weather + randomRange(-0.04, 0.05)));
+      statuses.humidity = Math.min(0.88, Math.max(0.25, statuses.humidity + randomRange(-0.04, 0.04)));
+      statuses.oxygen = Math.min(0.99, Math.max(0.75, statuses.oxygen + randomRange(-0.01, 0.01)));
+    }
+
+    function refreshPanels() {
+      updateStatuses();
+      updatePanels();
+    }
+
+    let cycleTimeout;
+
+    function issueCommand() {
+      if (currentState === 'processing') return;
+      playChime();
+      setState('active');
+      simulateVoiceInput(true);
+      pushLog('Command received. Prioritising tasks.');
+
+      clearTimeout(cycleTimeout);
+      cycleTimeout = setTimeout(() => {
+        setState('processing', { voice: 'Executing protocols. Stand by, sir.' });
+        triggerPulse();
+        pushLog('Resource allocation initiated.');
+
+        const success = Math.random() > 0.2;
+        setTimeout(() => {
+          simulateVoiceInput(false);
+          if (success) {
+            pushLog('Operation completed with optimal efficiency.');
+            playChime();
+            voiceFeedback.textContent = 'Task complete. Awaiting next command.';
+            setState('idle');
+          } else {
+            playBuzz();
+            pushLog('Anomaly detected in subsystem gamma.', true);
+            voiceFeedback.textContent = 'Apologies, sir. Subsystem gamma requires manual override.';
+            setState('idle');
+            document.getElementById('systemPanel').classList.add('alert');
+            setTimeout(() => document.getElementById('systemPanel').classList.remove('alert'), 4000);
+          }
+        }, 2200);
+      }, 1400);
+    }
+
+    orb.addEventListener('click', issueCommand);
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        issueCommand();
+      }
+    });
+
+    updatePanels();
+    setRings('idle');
+
+    setInterval(refreshPanels, 3000);
+    setInterval(() => simulateVoiceInput(currentState !== 'idle'), 900);
+
+    // Canvas graphs
+    const energyCanvas = document.getElementById('energyGraph');
+    const healthCanvas = document.getElementById('healthGraph');
+    const weatherCanvas = document.getElementById('weatherGraph');
+
+    const contexts = [energyCanvas, healthCanvas, weatherCanvas].map(c => c.getContext('2d'));
+
+    function clearCanvas(ctx) {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, ctx.canvas.height);
+      gradient.addColorStop(0, 'rgba(20, 80, 140, 0.25)');
+      gradient.addColorStop(1, 'rgba(12, 30, 55, 0.25)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    }
+
+    let phase = 0;
+
+    function drawEnergy(ctx) {
+      clearCanvas(ctx);
+      const healthy = statuses.integrity > 0.82;
+      const color = healthy ? 'rgba(90, 230, 255, 0.85)' : 'rgba(255, 160, 120, 0.9)';
+      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = color;
+      ctx.beginPath();
+      for (let x = 0; x < ctx.canvas.width; x++) {
+        const progress = x / ctx.canvas.width;
+        const y = ctx.canvas.height / 2 + Math.sin(progress * 6 * Math.PI + phase) * (20 + statuses.cpu * 30);
+        ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      if (!healthy) {
+        ctx.fillStyle = 'rgba(255, 110, 90, 0.2)';
+        ctx.fillRect(0, ctx.canvas.height * 0.6, ctx.canvas.width, ctx.canvas.height * 0.4);
+      }
+    }
+
+    function drawHealth(ctx) {
+      clearCanvas(ctx);
+      const baseY = ctx.canvas.height - 12;
+      const width = ctx.canvas.width / 12;
+      for (let i = 0; i < 12; i++) {
+        const level = Math.max(0.1, statuses.integrity - i * 0.03 + Math.sin(phase / 4 + i) * 0.04);
+        const height = level * (ctx.canvas.height - 20);
+        ctx.fillStyle = level > 0.7 ? 'rgba(90, 230, 255, 0.8)' : 'rgba(255, 130, 90, 0.85)';
+        ctx.fillRect(i * width + 6, baseY - height, width - 12, height);
+      }
+    }
+
+    function drawWeather(ctx) {
+      clearCanvas(ctx);
+      const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+      gradient.addColorStop(0, 'rgba(120, 235, 255, 0.8)');
+      gradient.addColorStop(1, 'rgba(255, 196, 120, 0.7)');
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let x = 0; x < ctx.canvas.width; x++) {
+        const progress = x / ctx.canvas.width;
+        const y = ctx.canvas.height / 2 + Math.cos(progress * 5 * Math.PI + phase / 1.5) * 18 + Math.sin(progress * 9 * Math.PI + phase) * 6;
+        ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      const iconX = ctx.canvas.width - 48;
+      const iconY = 28;
+      const status = statuses.weather;
+      ctx.fillStyle = status > 0.6 ? 'rgba(90, 230, 255, 0.7)' : 'rgba(255, 160, 120, 0.7)';
+      ctx.beginPath();
+      ctx.arc(iconX, iconY, 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.font = '12px Rajdhani, sans-serif';
+      ctx.fillText(status > 0.6 ? 'CLEAR' : 'STORM', iconX - 22, iconY + 30);
+    }
+
+    function renderGraphs() {
+      phase += 0.1;
+      drawEnergy(contexts[0]);
+      drawHealth(contexts[1]);
+      drawWeather(contexts[2]);
+      requestAnimationFrame(renderGraphs);
+    }
+
+    renderGraphs();
+
+    setInterval(() => {
+      if (Math.random() > 0.7) {
+        pushLog('Weather query resolved: ambient temperature stable.');
+      }
+    }, 6000);
+
+  </script>
+</body>
+</html>
